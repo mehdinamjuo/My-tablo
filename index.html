@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- اضافه کردن MindAR.js و Three.js -->
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/dist/mindar-image-three.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+
+  <body>
+    <div id="ar-container"></div>
+
+    <script>
+      const startAR = async () => {
+        const mindAR = new window.MINDAR.IMAGE.MindARThree({
+          container: document.querySelector("#ar-container"),
+          imageTargetSrc: "targets (2).mind"
+        });
+
+        const { renderer, scene, camera } = mindAR;
+
+        // بارگذاری ویدیو
+        const video = document.createElement("video");
+        video.src = "video1.mp4";
+        video.loop = true;
+        video.muted = true;
+
+        const texture = new THREE.VideoTexture(video);
+        const geometry = new THREE.PlaneGeometry(1, 1);
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.visible = false;
+        scene.add(mesh);
+
+        const anchor = mindAR.addAnchor(0);
+        anchor.onTargetFound = () => {
+          video.play();
+          mesh.visible = true;
+        };
+        anchor.onTargetLost = () => {
+          video.pause();
+          mesh.visible = false;
+        };
+
+        await mindAR.start();
+        renderer.setAnimationLoop(() => {
+          renderer.render(scene, camera);
+        });
+      };
+
+      startAR();
+    </script>
+  </body>
+</html>
