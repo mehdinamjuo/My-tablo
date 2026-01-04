@@ -3,52 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <title>تابلوی متحرک AR</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- MindAR & A-Frame -->
+  <!-- MindAR + A-Frame -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    body { margin:0; overflow:hidden;}
-    #loading { position:absolute; width:100%;height:100%; display:flex; justify-content:center;align-items:center; font-size:20px; background:#000;color:#fff;}
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    #loading { position: absolute; z-index: 999; width:100%; height:100%;
+               background:#000; color:#fff; display:flex;
+               justify-content:center; align-items:center; font-size:20px; }
   </style>
 </head>
-
 <body>
-  <div id="loading">دوربین در حال آماده‌سازی…</div>
 
-  <a-scene
-    mindar-image="imageTargetSrc: targets (3).mind;"
-    embedded
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    arjs-render-canvas
-  >
+  <div id="loading">در حال آماده‌سازی AR…</div>
+
+  <a-scene mindar-image="imageTargetSrc: targets (3).mind;"
+           embedded vr-mode-ui="enabled: false"
+           device-orientation-permission-ui="enabled: true"
+           arjs-render-canvas>
+    
     <a-assets>
-      <video id="video" src="video1.mp4" preload="auto" loop webkit-playsinline playsinline muted></video>
+      <video id="video1"
+             src="video1.mp4"
+             preload="auto"
+             loop
+             playsinline
+             webkit-playsinline
+             muted></video>
     </a-assets>
 
     <a-entity mindar-image-target="targetIndex: 0">
-      <a-video
-        src="#video"
-        width="1"
-        height="0.6"
-        position="0 0 0"
-      ></a-video>
+      <a-video src="#video1"
+               width="1"
+               height="0.6"
+               position="0 0 0"></a-video>
     </a-entity>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera look-controls="enabled: false"></a-camera>
   </a-scene>
 
   <script>
-    const video = document.querySelector("#video");
+    const loading = document.getElementById("loading");
     const scene = document.querySelector("a-scene");
-    const load = document.querySelector("#loading");
+    const video = document.querySelector("#video1");
 
     scene.addEventListener("renderstart", () => {
-      load.style.display = "none";
+      loading.style.display = "none";
     });
 
     scene.addEventListener("targetFound", () => {
@@ -58,5 +62,6 @@
       video.pause();
     });
   </script>
+
 </body>
 </html>
