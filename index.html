@@ -1,67 +1,70 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>تابلوی متحرک AR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- MindAR + A-Frame -->
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-    #loading { position: absolute; z-index: 999; width:100%; height:100%;
-               background:#000; color:#fff; display:flex;
-               justify-content:center; align-items:center; font-size:20px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>تابلوی AR - دوربین خودکار</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        #loading {
+            position: absolute; z-index: 999; width:100%; height:100%;
+            background:#000; color:#fff; display:flex;
+            justify-content:center; align-items:center; font-size:20px;
+        }
+    </style>
 </head>
 <body>
+    <div id="loading">در حال راه‌اندازی دوربین و AR…</div>
 
-  <div id="loading">در حال آماده‌سازی AR…</div>
+    <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true;"
+             embedded
+             vr-mode-ui="enabled: false"
+             device-orientation-permission-ui="enabled: false"
+             arjs-render-canvas>
+        
+        <a-assets>
+            <video id="video1"
+                   src="video1.mp4"
+                   preload="auto"
+                   loop
+                   playsinline
+                   webkit-playsinline
+                   muted></video>
+        </a-assets>
 
-  <a-scene mindar-image="imageTargetSrc: targets.mind;"
-           embedded vr-mode-ui="enabled: false"
-           device-orientation-permission-ui="enabled: true"
-           arjs-render-canvas>
-    
-    <a-assets>
-      <video id="video1"
-             src="video1.mp4"
-             preload="auto"
-             loop
-             playsinline
-             webkit-playsinline
-             muted></video>
-    </a-assets>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-video src="#video1"
+                     width="1"
+                     height="0.6"
+                     position="0 0 0"></a-video>
+        </a-entity>
 
-    <a-entity mindar-image-target="targetIndex: 0">
-      <a-video src="#video1"
-               width="1"
-               height="0.6"
-               position="0 0 0"></a-video>
-    </a-entity>
+        <a-camera look-controls="enabled: false"></a-camera>
+    </a-scene>
 
-    <a-camera look-controls="enabled: false"></a-camera>
-  </a-scene>
+    <script>
+        const loading = document.getElementById("loading");
+        const scene = document.querySelector("a-scene");
+        const video = document.querySelector("#video1");
 
-  <script>
-    const loading = document.getElementById("loading");
-    const scene = document.querySelector("a-scene");
-    const video = document.querySelector("#video1");
+        // وقتی دوربین و AR آماده شد، loading را پنهان کن
+        scene.addEventListener("renderstart", () => {
+            loading.style.display = "none";
+        });
 
-    scene.addEventListener("renderstart", () => {
-      loading.style.display = "none";
-    });
+        // وقتی مارکر پیدا شد، ویدیو پخش شود
+        scene.addEventListener("targetFound", () => {
+            video.play();
+        });
+        scene.addEventListener("targetLost", () => {
+            video.pause();
+        });
 
-    scene.addEventListener("targetFound", () => {
-      video.play();
-    });
-    scene.addEventListener("targetLost", () => {
-      video.pause();
-    });
-  </script>
-
+        // اگر کاربر قبلاً دسترسی نداده، پیام درخواست دسترسی نشان داده می‌شود
+        // (در مرورگرهای مدرن این به‌طور خودکار اتفاق می‌افتد)
+    </script>
 </body>
 </html>
