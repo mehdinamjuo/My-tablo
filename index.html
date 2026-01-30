@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fa">
 <head>
@@ -27,40 +26,7 @@ a-scene {
   inset: 0;
 }
 
-/* UI (اول مخفی) */
-.ui {
-  display: none;
-}
-
-/* دکمه ضبط وسط تصویر */
-#recordBtn {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  background: red;
-  border: 6px solid white;
-  z-index: 9999;
-}
-
-/* دکمه منو */
-#menuBtn {
-  position: fixed;
-  top: 18px;
-  right: 18px;
-  background: rgba(0,0,0,0.55);
-  color: white;
-  border: none;
-  font-size: 26px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  z-index: 9999;
-}
-
-/* منوی روی تصویر */
+/* منوی کناری (اول مخفی) */
 #sideMenu {
   position: fixed;
   top: 0;
@@ -71,6 +37,7 @@ a-scene {
   transition: 0.3s;
   z-index: 9998;
   padding-top: 80px;
+  display: none;  /* اول مخفی */
 }
 
 #sideMenu a {
@@ -82,17 +49,31 @@ a-scene {
   border-bottom: 1px solid #333;
 }
 
+/* دکمه منو (اول مخفی) */
+#menuBtn {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  border: none;
+  font-size: 26px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  z-index: 9999;
+  display: none;  /* اول مخفی */
+}
+
 input { display: none; }
 </style>
 </head>
 
 <body>
 
-<!-- UI -->
-<button id="menuBtn" class="ui">☰</button>
-<button id="recordBtn" class="ui"></button>
+<!-- دکمه منو (بدون ضبط) -->
+<button id="menuBtn">☰</button>
 
-<div id="sideMenu" class="ui">
+<div id="sideMenu">
   <a href="#" onclick="pickVideo()">🎥 تغییر ویدیو</a>
   <a href="#">🖼️ تغییر عکس</a>
   <a href="#">🛠️ پشتیبانی</a>
@@ -132,12 +113,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const sceneEl = document.querySelector("a-scene");
 
   sceneEl.addEventListener("arReady", () => {
-    document.querySelectorAll(".ui").forEach(el => {
-      el.style.display = "block";
-      el.style.opacity = "0";
-      el.style.transition = "opacity 0.4s";
-      setTimeout(() => el.style.opacity = "1", 50);
-    });
+    // دکمه منو و منو رو ظاهر کن
+    const menuBtn = document.getElementById("menuBtn");
+    const sideMenu = document.getElementById("sideMenu");
+
+    menuBtn.style.display = "block";
+    sideMenu.style.display = "block";
+
+    // افکت fade-in
+    menuBtn.style.opacity = "0";
+    sideMenu.style.opacity = "0";
+    menuBtn.style.transition = "opacity 0.4s";
+    sideMenu.style.transition = "opacity 0.4s";
+    setTimeout(() => {
+      menuBtn.style.opacity = "1";
+      sideMenu.style.opacity = "1";
+    }, 50);
   });
 });
 
@@ -160,34 +151,6 @@ videoInput.onchange = e => {
   video.play();
 };
 
-/* ضبط */
-let recorder, chunks = [];
-const recordBtn = document.getElementById("recordBtn");
-
-recordBtn.onclick = () => {
-  if (!recorder || recorder.state === "inactive") {
-    const canvas = document.querySelector("a-scene").canvas;
-    const stream = canvas.captureStream(30);
-    recorder = new MediaRecorder(stream);
-    chunks = [];
-
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "video/webm" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "magic-frame.webm";
-      a.click();
-    };
-
-> مهدی نامجو:
-recorder.start();
-    recordBtn.style.background = "black";
-  } else {
-    recorder.stop();
-    recordBtn.style.background = "red";
-  }
-};
 </script>
 
 </body>
