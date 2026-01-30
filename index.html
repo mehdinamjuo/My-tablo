@@ -1,10 +1,9 @@
-> مهدی نامجو:
 <!DOCTYPE html>
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
 <title>قاب جادویی</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <!-- A-Frame & MindAR -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -18,22 +17,29 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: sans-serif;
+  background: black;
 }
 
-/* دکمه ضبط */
+/* AR full screen */
+a-scene {
+  position: fixed;
+  inset: 0;
+}
+
+/* دکمه ضبط وسط تصویر */
 #recordBtn {
   position: fixed;
-  bottom: 20px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
   background: red;
+  border: 6px solid white;
   color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 14px 26px;
-  font-size: 18px;
-  z-index: 999;
+  font-size: 14px;
+  z-index: 9999;
 }
 
 /* دکمه منو */
@@ -41,67 +47,62 @@ html, body {
   position: fixed;
   top: 20px;
   right: 20px;
-  font-size: 26px;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.5);
   color: white;
   border: none;
+  font-size: 26px;
   padding: 10px 14px;
-  border-radius: 8px;
-  z-index: 999;
+  border-radius: 10px;
+  z-index: 9999;
 }
 
-/* منوی کشویی */
+/* منوی روی تصویر */
 #sideMenu {
   position: fixed;
   top: 0;
-  right: -260px;
-  width: 260px;
+  right: -100%;
+  width: 70%;
   height: 100%;
-  background: #111;
+  background: rgba(0,0,0,0.92);
   color: white;
   transition: 0.3s;
-  z-index: 1000;
-  padding-top: 60px;
+  z-index: 9998;
+  padding-top: 80px;
 }
 
 #sideMenu a {
   display: block;
-  padding: 15px 20px;
+  padding: 18px 24px;
+  font-size: 18px;
   color: white;
   text-decoration: none;
   border-bottom: 1px solid #333;
 }
 
-#sideMenu a:hover {
-  background: #222;
-}
-
-input[type="file"] {
-  display: none;
-}
+input { display: none; }
 </style>
 </head>
 
 <body>
 
-<!-- منو -->
+<!-- دکمه منو -->
 <button id="menuBtn">☰</button>
 
+<!-- منوی کناری -->
 <div id="sideMenu">
-  <a href="#" onclick="uploadVideo()">🎥 آپلود ویدیو</a>
-  <a href="#" onclick="uploadImage()">🖼️ آپلود عکس</a>
+  <a href="#" onclick="pickVideo()">🎥 تغییر ویدیو</a>
+  <a href="#" onclick="pickImage()">🖼️ تغییر عکس</a>
   <a href="#">🛠️ پشتیبانی</a>
   <a href="#">📞 ارتباط با ما</a>
 </div>
 
-<!-- دکمه ضبط -->
-<button id="recordBtn">● ضبط</button>
+<!-- ضبط -->
+<button id="recordBtn"></button>
 
-<!-- input مخفی -->
 <input type="file" id="videoInput" accept="video/*">
 <input type="file" id="imageInput" accept="image/*">
 
-<!-- AR Scene -->
+<!-- AR -->
 <a-scene
   mindar-image="
     imageTargetSrc: targets.mind;
@@ -111,81 +112,66 @@ input[type="file"] {
     autoStart: true;
   "
   embedded
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false"
+  vr-mode-ui="enabled:false"
+  device-orientation-permission-ui="enabled:false"
 >
 
-  <a-assets>
-    <video id="arVideo" src="default.mp4" loop playsinline webkit-playsinline muted></video>
-  </a-assets>
+<a-assets>
+  <video id="arVideo" src="default.mp4" loop muted playsinline></video>
+</a-assets>
 
-  <a-entity mindar-image-target="targetIndex: 0">
-    <a-video src="#arVideo" width="1" height="0.6"></a-video>
-  </a-entity>
+<a-entity mindar-image-target="targetIndex:0">
+  <a-video src="#arVideo" width="1" height="0.6"></a-video>
+</a-entity>
 
-  <a-camera look-controls="enabled:false"></a-camera>
+<a-camera look-controls="enabled:false"></a-camera>
 </a-scene>
 
 <script>
 /* منو */
 const menuBtn = document.getElementById("menuBtn");
 const sideMenu = document.getElementById("sideMenu");
-
 menuBtn.onclick = () => {
-  sideMenu.style.right = sideMenu.style.right === "0px" ? "-260px" : "0px";
+  sideMenu.style.right = sideMenu.style.right === "0px" ? "-100%" : "0px";
 };
 
-/* آپلود ویدیو */
-function uploadVideo() {
+/* تغییر ویدیو */
+function pickVideo() {
   document.getElementById("videoInput").click();
 }
-
-document.getElementById("videoInput").onchange = e => {
+videoInput.onchange = e => {
   const file = e.target.files[0];
   if (!file) return;
-  const url = URL.createObjectURL(file);
   const video = document.getElementById("arVideo");
-  video.src = url;
+  video.src = URL.createObjectURL(file);
   video.play();
 };
 
-/* آپلود عکس (فعلاً فقط آماده) */
-function uploadImage() {
-  document.getElementById("imageInput").click();
-}
-
 /* ضبط ویدیو */
-let mediaRecorder;
-let chunks = [];
+let recorder, chunks = [];
 const recordBtn = document.getElementById("recordBtn");
 
 recordBtn.onclick = () => {
-  if (!mediaRecorder || mediaRecorder.state === "inactive") {
+  if (!recorder || recorder.state === "inactive") {
     const canvas = document.querySelector("a-scene").canvas;
     const stream = canvas.captureStream(30);
 
-    mediaRecorder = new MediaRecorder(stream);
+    recorder = new MediaRecorder(stream);
     chunks = [];
 
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-
-    mediaRecorder.onstop = () => {
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
       const blob = new Blob(chunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = URL.createObjectURL(blob);
       a.download = "magic-frame.webm";
       a.click();
-      URL.revokeObjectURL(url);
     };
 
-> مهدی نامجو:
-mediaRecorder.start();
-    recordBtn.innerText = "■ توقف";
+    recorder.start();
     recordBtn.style.background = "black";
   } else {
-    mediaRecorder.stop();
-    recordBtn.innerText = "● ضبط";
+    recorder.stop();
     recordBtn.style.background = "red";
   }
 };
