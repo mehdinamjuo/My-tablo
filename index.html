@@ -2,187 +2,143 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>قاب جادویی</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Magic Frame AR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- A-Frame + MindAR -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
-  background: black;
+  background: #000;
 }
 
-a-scene {
+/* Loader */
+#loader {
   position: fixed;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  color: #fff;
+  z-index: 9999;
 }
 
-/* UI اول مخفی */
-#recordBtn,
-#menuBtn,
-#sideMenu {
+/* Hamburger button */
+#menuBtn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9998;
+  font-size: 24px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
   display: none;
 }
 
-/* ضبط */
-#recordBtn {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 75px;
-  height: 75px;
-  border-radius: 50%;
-  background: red;
-  border: 6px solid white;
-  z-index: 9999;
-}
-
-/* منو */
-#menuBtn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  font-size: 26px;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  border-radius: 10px;
-  border: none;
-  z-index: 9999;
-}
-
+/* Side menu */
 #sideMenu {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 70%;
+  width: 65%;
   height: 100%;
   background: rgba(0,0,0,0.92);
+  z-index: 9997;
   transition: 0.3s;
-  z-index: 9998;
   padding-top: 80px;
 }
 
 #sideMenu a {
   display: block;
-  padding: 18px 24px;
+  padding: 20px;
+  color: #fff;
   font-size: 18px;
-  color: white;
   text-decoration: none;
   border-bottom: 1px solid #333;
 }
-
-input { display: none; }
 </style>
 </head>
 
 <body>
 
+<div id="loader">در حال فعال‌سازی دوربین...</div>
+
 <button id="menuBtn">☰</button>
 
 <div id="sideMenu">
-  <a href="#" onclick="pickVideo()">🎥 تغییر ویدیو</a>
-  <a href="#" onclick="pickImage()">🖼️ تغییر عکس</a>
-  <a href="#">🛠️ پشتیبانی</a>
-  <a href="#">📞 ارتباط با ما</a>
+  <a href="https://instagram.com/DELSAA_GALLERYY" target="_blank">
+    📩 پشتیبانی
+  </a>
 </div>
 
-<button id="recordBtn"></button>
-
-<input type="file" id="videoInput" accept="video/*">
-<input type="file" id="imageInput" accept="image/*">
-
 <a-scene
-  mindar-image="
-    imageTargetSrc: targets.mind;
-    uiScanning: false;
-    uiLoading: false;
-    uiError: false;
-    autoStart: true;
-  "
+  mindar-image="imageTargetSrc: targets.mind;"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
   embedded
-  vr-mode-ui="enabled:false"
-  device-orientation-permission-ui="enabled:false"
 >
 
-<a-assets>
-  <video id="arVideo" src="default.mp4" loop muted playsinline webkit-playsinline></video>
-</a-assets>
+  <a-assets>
+    <video id="arVideo"
+      src="video.mp4"
+      loop
+      muted
+      playsinline
+      webkit-playsinline
+      crossorigin="anonymous">
+    </video>
+  </a-assets>
 
-<a-entity mindar-image-target="targetIndex:0">
-  <!-- ✅ اندازه فیکس موبایل -->
-  <a-video
-    src="#arVideo"
-    width="0.85"
-    height="0.53"
-    position="0 0 0"
-  ></a-video>
-</a-entity>
+  <!-- Target -->
+  <a-entity mindar-image-target="targetIndex: 0">
+    
+    <!-- Video plane (tabletop, exactly like photo) -->
+    <a-video
+      src="#arVideo"
+      width="1"
+      height="0.65"
+      rotation="0 0 0"
+      position="0 0 0">
+    </a-video>
 
-<a-camera look-controls="enabled:false"></a-camera>
+  </a-entity>
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 </a-scene>
 
 <script>
 const scene = document.querySelector("a-scene");
 const video = document.getElementById("arVideo");
+const loader = document.getElementById("loader");
+const menuBtn = document.getElementById("menuBtn");
+const sideMenu = document.getElementById("sideMenu");
 
-/* UI بعد از آماده شدن AR */
 scene.addEventListener("arReady", () => {
-  recordBtn.style.display = "block";
+  loader.style.display = "none";
   menuBtn.style.display = "block";
-  sideMenu.style.display = "block";
 });
 
-/* پخش فقط وقتی قاب دیده میشه */
-scene.addEventListener("targetFound", () => video.play());
-scene.addEventListener("targetLost", () => video.pause());
-
-/* منو */
-menuBtn.onclick = () => {
-  sideMenu.style.right = sideMenu.style.right === "0px" ? "-100%" : "0px";
-};
-
-/* تغییر ویدیو */
-function pickVideo() {
-  videoInput.click();
-}
-videoInput.onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  video.src = URL.createObjectURL(file);
+scene.addEventListener("targetFound", () => {
   video.play();
-};
+});
 
-/* ضبط */
-let recorder, chunks = [];
-recordBtn.onclick = () => {
-  if (!recorder || recorder.state === "inactive") {
-    const canvas = scene.canvas;
-    const stream = canvas.captureStream(30);
-    recorder = new MediaRecorder(stream);
-    chunks = [];
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "video/webm" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "magic-frame.webm";
-      a.click();
-    };
-    recorder.start();
-    recordBtn.style.background = "black";
-  } else {
-    recorder.stop();
-    recordBtn.style.background = "red";
-  }
+scene.addEventListener("targetLost", () => {
+  video.pause();
+});
+
+/* Menu toggle */
+menuBtn.onclick = () => {
+  sideMenu.style.right =
+    sideMenu.style.right === "0px" ? "-100%" : "0px";
 };
 </script>
 
