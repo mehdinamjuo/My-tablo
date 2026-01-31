@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <title>قاب جادویی</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
 html, body {
   margin: 0;
+  padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: black;
 }
 
-/* صحنه AR */
 a-scene {
   position: fixed;
   inset: 0;
@@ -26,16 +27,16 @@ a-scene {
 /* دکمه منو */
 #menuBtn {
   position: fixed;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   z-index: 9999;
+  font-size: 24px;
+  padding: 10px 14px;
   background: rgba(0,0,0,0.6);
   color: white;
-  font-size: 26px;
+  border-radius: 12px;
   border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  display: none; /* بعد از آماده شدن دوربین */
+  display: none;
 }
 
 /* منو */
@@ -43,20 +44,21 @@ a-scene {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 70%;
+  width: 75%;
   height: 100%;
   background: rgba(0,0,0,0.95);
   z-index: 9998;
-  transition: 0.3s;
-  padding-top: 80px;
+  transition: 0.35s ease;
+  padding-top: 100px;
+  display: none;
 }
 
 #menu a {
   display: block;
   padding: 20px;
+  font-size: 18px;
   color: white;
   text-decoration: none;
-  font-size: 18px;
   border-bottom: 1px solid #333;
 }
 </style>
@@ -86,28 +88,54 @@ a-scene {
 >
 
 <a-assets>
-  <video id="vid" src="default.mp4" loop muted playsinline></video>
+  <video
+    id="video"
+    src="video.mp4"
+    loop
+    muted
+    playsinline
+    webkit-playsinline
+  ></video>
 </a-assets>
 
-<a-entity mindar-image-target="targetIndex:0">
-  <a-video src="#vid" width="1" height="0.6"></a-video>
+<a-entity mindar-image-target="targetIndex: 0">
+  <!-- اندازه فیکس مخصوص قاب موبایل -->
+  <a-video
+    src="#video"
+    width="0.9"
+    height="0.55"
+    position="0 0 0"
+  ></a-video>
 </a-entity>
 
-<a-camera look-controls="enabled:false"></a-camera>
+<a-camera
+  position="0 0 0"
+  look-controls="enabled:false"
+></a-camera>
+
 </a-scene>
 
 <script>
+const scene = document.querySelector("a-scene");
+const video = document.getElementById("video");
 const menuBtn = document.getElementById("menuBtn");
 const menu = document.getElementById("menu");
 
-/* وقتی دوربین واقعاً آماده شد */
-document.querySelector("a-scene")
-  .addEventListener("arReady", () => {
-    menuBtn.style.display = "block";
-  });
+scene.addEventListener("arReady", () => {
+  menuBtn.style.display = "block";
+  menu.style.display = "block";
+});
+
+scene.addEventListener("targetFound", () => {
+  video.play();
+});
+
+scene.addEventListener("targetLost", () => {
+  video.pause();
+});
 
 menuBtn.onclick = () => {
-  menu.style.right = menu.style.right === "0px" ? "-100%" : "0px";
+  menu.style.right = (menu.style.right === "0px") ? "-100%" : "0px";
 };
 </script>
 
