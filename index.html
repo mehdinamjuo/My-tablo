@@ -5,91 +5,80 @@
 <title>قاب جادویی</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-<!-- A-Frame + MindAR -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
 html, body {
   margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: black;
 }
 
-/* AR تمام صفحه */
+/* صحنه AR */
 a-scene {
   position: fixed;
   inset: 0;
 }
 
-/* منوی کناری (اول مخفی) */
-#sideMenu {
+/* دکمه منو */
+#menuBtn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 26px;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  display: none; /* بعد از آماده شدن دوربین */
+}
+
+/* منو */
+#menu {
   position: fixed;
   top: 0;
   right: -100%;
   width: 70%;
   height: 100%;
   background: rgba(0,0,0,0.95);
-  transition: 0.3s;
   z-index: 9998;
+  transition: 0.3s;
   padding-top: 80px;
-  display: none;  /* اول مخفی */
 }
 
-#sideMenu a {
+#menu a {
   display: block;
-  padding: 18px 24px;
-  font-size: 18px;
+  padding: 20px;
   color: white;
   text-decoration: none;
+  font-size: 18px;
   border-bottom: 1px solid #333;
 }
-
-/* دکمه منو (اول مخفی) */
-#menuBtn {
-  position: fixed;
-  top: 18px;
-  right: 18px;
-  background: rgba(0,0,0,0.55);
-  color: white;
-  border: none;
-  font-size: 26px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  z-index: 9999;
-  display: none;  /* اول مخفی */
-}
-
-input { display: none; }
 </style>
 </head>
 
 <body>
 
-<!-- دکمه منو (بدون ضبط) -->
 <button id="menuBtn">☰</button>
 
-<div id="sideMenu">
-  <a href="#" onclick="pickVideo()">🎥 تغییر ویدیو</a>
-  <a href="#">🖼️ تغییر عکس</a>
-  <a href="#">🛠️ پشتیبانی</a>
-  <a href="#">📞 ارتباط با ما</a>
+<div id="menu">
+  <a href="https://instagram.com/DELSAA_GALLERYY" target="_blank">
+    🛠️ پشتیبانی
+  </a>
 </div>
 
-<input type="file" id="videoInput" accept="video/*">
-
-<!-- AR -->
 <a-scene
   mindar-image="
     imageTargetSrc: targets.mind;
+    autoStart: true;
     uiScanning: false;
     uiLoading: false;
     uiError: false;
-    autoStart: true;
   "
   embedded
   vr-mode-ui="enabled:false"
@@ -97,60 +86,29 @@ input { display: none; }
 >
 
 <a-assets>
-  <video id="arVideo" src="default.mp4" loop muted playsinline></video>
+  <video id="vid" src="default.mp4" loop muted playsinline></video>
 </a-assets>
 
 <a-entity mindar-image-target="targetIndex:0">
-  <a-video src="#arVideo" width="1" height="0.6"></a-video>
+  <a-video src="#vid" width="1" height="0.6"></a-video>
 </a-entity>
 
 <a-camera look-controls="enabled:false"></a-camera>
 </a-scene>
 
 <script>
-/* صبر برای آماده شدن دوربین */
-document.addEventListener("DOMContentLoaded", () => {
-  const sceneEl = document.querySelector("a-scene");
-
-  sceneEl.addEventListener("arReady", () => {
-    // دکمه منو و منو رو ظاهر کن
-    const menuBtn = document.getElementById("menuBtn");
-    const sideMenu = document.getElementById("sideMenu");
-
-    menuBtn.style.display = "block";
-    sideMenu.style.display = "block";
-
-    // افکت fade-in
-    menuBtn.style.opacity = "0";
-    sideMenu.style.opacity = "0";
-    menuBtn.style.transition = "opacity 0.4s";
-    sideMenu.style.transition = "opacity 0.4s";
-    setTimeout(() => {
-      menuBtn.style.opacity = "1";
-      sideMenu.style.opacity = "1";
-    }, 50);
-  });
-});
-
-/* منو */
 const menuBtn = document.getElementById("menuBtn");
-const sideMenu = document.getElementById("sideMenu");
+const menu = document.getElementById("menu");
+
+/* وقتی دوربین واقعاً آماده شد */
+document.querySelector("a-scene")
+  .addEventListener("arReady", () => {
+    menuBtn.style.display = "block";
+  });
+
 menuBtn.onclick = () => {
-  sideMenu.style.right = sideMenu.style.right === "0px" ? "-100%" : "0px";
+  menu.style.right = menu.style.right === "0px" ? "-100%" : "0px";
 };
-
-/* تغییر ویدیو */
-function pickVideo() {
-  videoInput.click();
-}
-videoInput.onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const video = document.getElementById("arVideo");
-  video.src = URL.createObjectURL(file);
-  video.play();
-};
-
 </script>
 
 </body>
