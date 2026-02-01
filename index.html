@@ -2,7 +2,7 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>Magic Frame AR</title>
+<title>Magic Frame Support Menu</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- A-Frame + MindAR -->
@@ -26,93 +26,94 @@ html, body {
   justify-content: center;
   background: #000;
   color: #fff;
+  font-size: 17px;
   z-index: 9999;
 }
 
-/* Hamburger button */
+/* Menu Button */
 #menuBtn {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 9998;
-  font-size: 24px;
-  background: rgba(0,0,0,0.6);
+  font-size: 26px;
   color: #fff;
+  background: rgba(0,0,0,0.6);
   border: none;
   border-radius: 10px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   display: none;
 }
 
-/* Side menu */
+/* Side Menu */
 #sideMenu {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 65%;
+  width: 75%;
   height: 100%;
-  background: rgba(0,0,0,0.92);
+  background: rgba(0,0,0,0.95);
   z-index: 9997;
-  transition: 0.3s;
-  padding-top: 80px;
+  transition: 0.3s ease;
+  padding-top: 90px;
+  text-align: right;
 }
 
 #sideMenu a {
   display: block;
-  padding: 20px;
+  padding: 20px 24px;
   color: #fff;
-  font-size: 18px;
+  font-size: 17px;
   text-decoration: none;
   border-bottom: 1px solid #333;
+}
+
+#sideMenu a:hover {
+  background: rgba(255,255,255,0.1);
 }
 </style>
 </head>
 
 <body>
 
+<!-- Loader -->
 <div id="loader">در حال فعال‌سازی دوربین...</div>
 
+<!-- Menu Button -->
 <button id="menuBtn">☰</button>
 
+<!-- Side Menu -->
 <div id="sideMenu">
-  <a href="https://instagram.com/DELSAA_GALLERYY" target="_blank">
-    📩 پشتیبانی
-  </a>
+  <a href="support-expert.html">👤 پشتیبانی کارشناسان</a>
+  <a href="support-video.html">🎥 پشتیبانی ویدیو</a>
+  <a href="support-buy.html">🛒 پشتیبانی خرید</a>
+  <a href="support-question.html">❓ پشتیبانی در مورد سوال</a>
 </div>
 
+<!-- AR Scene -->
 <a-scene
-  mindar-image="imageTargetSrc: targets.mind;"
+  mindar-image="imageTargetSrc: targets.mind; filterMinCF:0.0001; filterBeta:0.001;"
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: false"
   embedded
+  renderer="colorManagement: true; physicallyCorrectLights: true;"
 >
 
   <a-assets>
-    <video id="arVideo"
-      src="video.mp4"
-      loop
-      muted
-      playsinline
-      webkit-playsinline
-      crossorigin="anonymous">
-    </video>
+    <video id="arVideo" src="video.mp4" loop playsinline webkit-playsinline crossorigin="anonymous"></video>
   </a-assets>
 
-  <!-- Target -->
   <a-entity mindar-image-target="targetIndex: 0">
-    
-    <!-- Video plane (tabletop, exactly like photo) -->
-    <a-video
+    <a-video 
       src="#arVideo"
       width="1"
-      height="0.65"
-      rotation="0 0 0"
-      position="0 0 0">
+      height="0.6"
+      position="0 0 0"
+      rotation="0 0 0">
     </a-video>
-
   </a-entity>
 
-  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  <a-camera look-controls="enabled: false"></a-camera>
 </a-scene>
 
 <script>
@@ -135,12 +136,9 @@ scene.addEventListener("targetLost", () => {
   video.pause();
 });
 
-/* Menu toggle */
 menuBtn.onclick = () => {
-  sideMenu.style.right =
-    sideMenu.style.right === "0px" ? "-100%" : "0px";
+  sideMenu.style.right = sideMenu.style.right === "0px" ? "-100%" : "0px";
 };
 </script>
-
 </body>
 </html>
