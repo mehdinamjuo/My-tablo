@@ -3,453 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <title>Magic Frame AR</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="description" content="تابلو متحرک AR - پخش خودکار ویدیو و صدا">
 <meta name="theme-color" content="#000000">
 
-<!-- A-Frame و MindAR -->
 <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
 
-<!-- فونت فارسی -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Vazirmatn', sans-serif; }
 
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #000;
-  font-family: 'Vazirmatn', sans-serif;
-}
-
-/* استایل‌های اصلی صحنه */
-a-scene {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 1;
-}
-
-/* Loader با پیشرفت بارگیری */
+/* بهبود لودینگ برای سرعت بصری */
 #loader {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.5s;
+  position: fixed; inset: 0;
+  background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0a 100%);
+  color: white; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 10000; transition: opacity 0.4s ease-out;
 }
 
-.loader-content {
-  text-align: center;
-  padding: 20px;
-  max-width: 90%;
-}
-
-#loader h1 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  background: linear-gradient(90deg, #00dbde, #fc00ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-#loader p {
-  margin: 15px 0;
-  color: #aaa;
-  font-size: 0.95rem;
-}
+.loader-content { text-align: center; width: 85%; }
+#loader h1 { font-size: 1.6rem; margin-bottom: 10px; color: #00dbde; }
 
 #progressBar {
-  width: 80%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  margin: 20px auto;
-  overflow: hidden;
+  width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px; margin: 20px 0; overflow: hidden;
 }
-
 #progressFill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #00dbde, #fc00ff);
-  border-radius: 10px;
-  transition: width 0.3s;
+  height: 100%; width: 0%; background: #00dbde;
+  box-shadow: 0 0 10px #00dbde; transition: width 0.2s;
 }
 
-#progressText {
-  font-size: 0.9rem;
-  color: #00dbde;
-  margin-top: 5px;
-}
-
-/* پیام راهنما */
+/* راهنمای شناور */
 #hint {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 12px 20px;
-  border-radius: 25px;
-  z-index: 9998;
-  opacity: 0;
-  transition: opacity 0.5s;
-  border: 1px solid rgba(0, 219, 222, 0.3);
-  backdrop-filter: blur(5px);
-  text-align: center;
-  max-width: 90%;
-  font-size: 0.9rem;
+  position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8); color: #fff; padding: 12px 25px;
+  border-radius: 30px; z-index: 999; opacity: 0;
+  transition: all 0.3s; border: 1px solid #00dbde;
+  pointer-events: none; white-space: nowrap;
 }
 
-/* نشانگر شناسایی */
-.detection-indicator {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
-  z-index: 9997;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.detection-indicator.visible {
-  opacity: 1;
-}
-
-.detection-circle {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 3px solid rgba(0, 219, 222, 0.3);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-}
-
-.detection-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 32px;
-  color: #00dbde;
-}
-
-/* اطلاعات سیستم */
+/* نمایشگر وضعیت سیستم */
 #systemInfo {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #00dbde;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  z-index: 9996;
-  border: 1px solid rgba(0, 219, 222, 0.2);
-  backdrop-filter: blur(5px);
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  position: fixed; top: 10px; right: 10px;
+  background: rgba(0, 0, 0, 0.5); color: #00dbde;
+  padding: 5px 10px; border-radius: 5px; font-size: 11px; z-index: 999;
 }
 
-#systemInfo:hover {
-  opacity: 1;
-}
-
-/* حالت‌های مختلف */
-.hidden {
-  display: none !important;
-}
-
-.visible {
-  opacity: 1 !important;
-}
-
-/* واکنش‌گرا */
-@media (max-width: 768px) {
-  #loader h1 {
-    font-size: 1.5rem;
-  }
-  
-  #hint {
-    bottom: 20px;
-    font-size: 0.85rem;
-    padding: 10px 16px;
-  }
-  
-  .detection-indicator {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .detection-icon {
-    font-size: 24px;
-  }
-  
-  #systemInfo {
-    top: 10px;
-    left: 10px;
-    font-size: 0.75rem;
-    padding: 8px 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  #loader h1 {
-    font-size: 1.3rem;
-  }
-  
-  #hint {
-    bottom: 15px;
-    font-size: 0.8rem;
-    padding: 8px 14px;
-  }
-}
+.hidden { display: none !important; }
 </style>
 </head>
 
 <body>
 
-<!-- Loader -->
 <div id="loader">
   <div class="loader-content">
-    <h1>تابلو متحرک AR</h1>
-    <p>در حال آماده‌سازی محیط واقعیت افزوده...</p>
-    <div id="progressBar">
-      <div id="progressFill"></div>
-    </div>
-    <div id="progressText">0%</div>
-    <p id="loaderStatus">در حال بارگیری کتابخانه‌ها</p>
+    <h1>Magic Frame AR</h1>
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <p id="loaderStatus" style="font-size: 0.8rem; color: #aaa;">در حال فراخوانی دوربین...</p>
   </div>
 </div>
 
-<!-- نشانگر شناسایی -->
-<div class="detection-indicator" id="detectionIndicator">
-  <div class="detection-circle"></div>
-  <div class="detection-icon">📱</div>
-</div>
+<div id="hint">تابلو را شناسایی کنید</div>
+<div id="systemInfo">FPS: <span id="fps">--</span> | <span id="arStatus">Loading</span></div>
 
-<!-- پیام راهنما -->
-<div id="hint">تابلو را مقابل دوربین بگیرید</div>
-
-<!-- اطلاعات سیستم -->
-<div id="systemInfo">
-  <div>سرعت لود: <span id="loadSpeed">--</span>ms</div>
-  <div>وضعیت: <span id="arStatus">آماده‌سازی</span></div>
-</div>
-
-<!-- صحنه A-Frame -->
 <a-scene
-  mindar-image="
-    imageTargetSrc: targets.mind;
-    uiScanning: false;
-    uiLoading: false;
-    uiError: false;
-    filterMinCF: 0.001;
-    filterBeta: 0.001;
-  "
-  embedded
-  vr-mode-ui="enabled:false"
-  device-orientation-permission-ui="enabled:false"
-  renderer="antialias: true; precision: high;"
->
+  mindar-image="imageTargetSrc: targets.mind; uiScanning: false; uiLoading: false; filterMinCF:0.0001; filterBeta: 0.001;"
+  embedded color-space="sRGB"
+  renderer="antialias: false; precision: medium; powerPreference: high-performance"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
 
-<a-assets>
-  <!-- ویدیو با صدا فعال -->
-  <video id="vid" src="video.mp4" loop playsinline webkit-playsinline preload="auto"></video>
-</a-assets>
+  <a-assets>
+    <video id="vid" src="video.mp4" 
+           loop="true" crossorigin="anonymous" 
+           playsinline webkit-playsinline 
+           preload="auto"></video>
+  </a-assets>
 
-<a-entity mindar-image-target="targetIndex:0">
-  <a-video src="#vid" width="1" height="0.6" position="0 0 0"></a-video>
-</a-entity>
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-<a-camera look-controls="enabled:false"></a-camera>
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-video src="#vid" width="1" height="0.6" position="0 0 0" rotation="0 0 0"></a-video>
+  </a-entity>
 </a-scene>
 
 <script>
-// عناصر DOM
 const scene = document.querySelector("a-scene");
 const vid = document.getElementById("vid");
 const loader = document.getElementById("loader");
-const loaderStatus = document.getElementById("loaderStatus");
-const progressFill = document.getElementById("progressFill");
-const progressText = document.getElementById("progressText");
+const fill = document.getElementById("progressFill");
+const status = document.getElementById("loaderStatus");
 const hint = document.getElementById("hint");
-const detectionIndicator = document.getElementById("detectionIndicator");
-const systemInfo = document.getElementById("systemInfo");
-const loadSpeedElement = document.getElementById("loadSpeed");
-const arStatusElement = document.getElementById("arStatus");
+const arStatusText = document.getElementById("arStatus");
 
-// متغیرهای سرعت لود
-const startTime = performance.now();
-const totalResources = 3; // A-Frame, MindAR, ویدیو
-let loadSpeed = 0;
-
-// شبیه‌سازی پیشرفت بارگیری
-function updateLoaderProgress(step, message) {
-  const progress = Math.min(step * 33, 100);
-  progressFill.style.width = `${progress}%`;
-  progressText.textContent = `${Math.round(progress)}%`;
-  loaderStatus.textContent = message;
-  
-  if (step >= totalResources) {
-    // محاسبه سرعت لود
-    loadSpeed = Math.round(performance.now() - startTime);
-    loadSpeedElement.textContent = loadSpeed;
-    
-    // نمایش اطلاعات سیستم
-    setTimeout(() => {
-      arStatusElement.textContent = "آماده";
-    }, 500);
-  }
-}
-
-// بارگیری منابع
-document.addEventListener("DOMContentLoaded", () => {
-  // مرحله 1: بارگیری A-Frame
-  setTimeout(() => updateLoaderProgress(1, "بارگیری موتور AR"), 300);
-  
-  // مرحله 2: بارگیری MindAR
-  setTimeout(() => updateLoaderProgress(2, "بارگیری سیستم تشخیص تصویر"), 800);
-  
-  // مرحله 3: بارگیری ویدیو
-  vid.onloadeddata = () => {
-    updateLoaderProgress(3, "بارگیری ویدیو و صدا");
-    console.log("ویدیو با صدا بارگیری شد");
-  };
-  
-  // اگر ویدیو از قبل بارگیری شده
-  if (vid.readyState >= 3) {
-    updateLoaderProgress(3, "بارگیری ویدیو و صدا");
-  }
-  
-  // خطای بارگیری ویدیو
-  vid.addEventListener("error", () => {
-    console.warn("خطا در بارگیری ویدیو");
-  });
-});
-
-// رویدادهای AR
-scene.addEventListener("arReady", () => {
-  // مخفی کردن loader
-  setTimeout(() => {
-    loader.style.opacity = "0";
-    setTimeout(() => {
-      loader.style.display = "none";
-      
-      // نمایش راهنما
-      setTimeout(() => {
-        hint.style.opacity = "1";
-      }, 300);
-    }, 500);
-  }, 500);
-  
-  // نمایش اطلاعات سیستم
-  systemInfo.style.opacity = "0.7";
-  
-  arStatusElement.textContent = "در انتظار اسکن";
-});
-
-scene.addEventListener("targetFound", () => {
-  // مخفی کردن راهنما و نشانگر
-  hint.style.opacity = "0";
-  detectionIndicator.classList.remove("visible");
-  
-  // پخش خودکار ویدیو با صدا
-  vid.play().then(() => {
-    console.log("ویدیو با صدا پخش شد");
-    arStatusElement.textContent = "در حال پخش";
-  }).catch(e => {
-    console.warn("خطا در پخش ویدیو:", e);
-    
-    // در برخی مرورگرها نیاز به تعامل کاربر است
-    if (e.name === "NotAllowedError") {
-      hint.textContent = "برای پخش، روی صفحه ضربه بزنید";
-      hint.style.opacity = "1";
-      
-      // فعال کردن پخش با کلیک کاربر
-      const playOnClick = () => {
-        vid.play().then(() => {
-          hint.style.opacity = "0";
-          document.removeEventListener("click", playOnClick);
-          document.removeEventListener("touchstart", playOnClick);
-        });
-      };
-      
-      document.addEventListener("click", playOnClick);
-      document.addEventListener("touchstart", playOnClick);
+// مدیریت لودینگ سریع
+let progress = 0;
+const interval = setInterval(() => {
+    if(progress < 90) {
+        progress += Math.random() * 15;
+        fill.style.width = progress + "%";
     }
-  });
+}, 200);
+
+// وقتی سیستم AR کاملاً آماده شد
+scene.addEventListener("arReady", () => {
+    clearInterval(interval);
+    fill.style.width = "100%";
+    status.innerText = "آماده اسکن!";
+    
+    setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => loader.classList.add("hidden"), 500);
+        hint.style.opacity = "1";
+        arStatusText.innerText = "Ready";
+    }, 400);
 });
 
+// شناسایی هدف
+scene.addEventListener("targetFound", () => {
+    hint.style.opacity = "0";
+    arStatusText.innerText = "Streaming";
+    
+    // حل مشکل Autoplay در تمام گوشی‌ها
+    const startVideo = () => {
+        vid.play();
+        document.removeEventListener('touchstart', startVideo);
+    };
+    
+    vid.play().catch(() => {
+        hint.innerText = "برای شروع صدا، صفحه را لمس کنید";
+        hint.style.opacity = "1";
+        document.addEventListener('touchstart', startVideo);
+    });
+});
+
+// گم کردن هدف
 scene.addEventListener("targetLost", () => {
-  // نمایش مجدد راهنما و نشانگر
-  hint.style.opacity = "1";
-  detectionIndicator.classList.add("visible");
-  
-  // توقف ویدیو
-  vid.pause();
-  vid.currentTime = 0;
-  
-  arStatusElement.textContent = "در انتظار اسکن";
+    vid.pause();
+    hint.innerText = "تابلو را مقابل دوربین بگیرید";
+    hint.style.opacity = "1";
+    arStatusText.innerText = "Searching...";
 });
 
-// مدیریت خطاهای AR
-scene.addEventListener("arError", (e) => {
-  console.error("خطای AR:", e.detail);
-  arStatusElement.textContent = "خطا";
-  
-  // نمایش پیام خطا به کاربر
-  hint.textContent = "خطا در سیستم AR. صفحه را رفرش کنید.";
-  hint.style.opacity = "1";
-});
+// بهینه‌سازی FPS
+let frameCount = 0;
+let lastTime = performance.now();
+function updateFPS() {
+    frameCount++;
+    let now = performance.now();
+    if (now - lastTime >= 1000) {
+        document.getElementById("fps").innerText = frameCount;
+        frameCount = 0;
+        lastTime = now;
+    }
+    requestAnimationFrame(updateFPS);
+}
+updateFPS();
 
-// نمایش نشانگر شناسایی بعد از آماده‌سازی
-setTimeout(() => {
-  if (!vid.paused) return; // اگر ویدیو در حال پخش است نشان نده
-  detectionIndicator.classList.add("visible");
-}, 1000);
-
-// به روزرسانی اطلاعات سیستم
-setInterval(() => {
-  if (!vid.paused) {
-    arStatusElement.textContent = `در حال پخش (${Math.round(vid.currentTime)}/${Math.round(vid.duration)}s)`;
-  }
-}, 1000);
+// جلوگیری از زوم ناخواسته در iOS
+document.addEventListener('gesturestart', (e) => e.preventDefault());
 </script>
 
 </body>
