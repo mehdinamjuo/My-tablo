@@ -1,154 +1,81 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa">
 <head>
-<meta charset="UTF-8">
-<title>AR Pro Max</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta charset="UTF-8">
+  <title>AR Tablo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
-<style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; position: fixed; }
+  <!-- MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    /* لایه دوربین - فیکس تمام صفحه */
-    video {
-        width: 100vw !important;
-        height: 100vh !important;
-        object-fit: cover !important;
-        position: absolute;
-        top: 0; left: 0;
-        z-index: -2; /* رفتن به آخرین لایه برای جلوگیری از سیاهی */
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:black; }
+    #loading {
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:black;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      z-index:10;
     }
-
-    /* لودینگ ۲ مرحله‌ای سریع */
-    #loader {
-        position: fixed; inset: 0;
-        background: radial-gradient(circle, #111 0%, #000 100%);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        z-index: 10000;
-    }
-
-    .progress-box { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 15px; }
-    #progressFill { width: 0%; height: 100%; background: #00dbde; box-shadow: 0 0 15px #00dbde; transition: width 0.2s; }
-
-    /* پنل اطلاعات و FPS */
-    #infoPanel {
-        position: fixed; top: 10px; left: 10px;
-        background: rgba(0,0,0,0.4); color: #00dbde;
-        padding: 5px 10px; border-radius: 5px;
-        font-family: monospace; font-size: 12px; z-index: 1000;
-        backdrop-filter: blur(5px); border: 1px solid rgba(0,219,222,0.2);
-    }
-
-    /* راهنمای اسکن */
-    #hint {
-        position: fixed; bottom: 15%; left: 50%; transform: translateX(-50%);
-        background: rgba(0, 219, 222, 0.2); color: #fff;
-        padding: 12px 25px; border-radius: 30px;
-        border: 1px solid #00dbde; backdrop-filter: blur(10px);
-        font-family: sans-serif; opacity: 0; transition: 0.5s; z-index: 1000;
-    }
-</style>
+  </style>
 </head>
+
 <body>
+  <div id="loading">در حال باز کردن دوربین…</div>
 
-<div id="loader">
-    <div style="color: #00dbde; letter-spacing: 2px; font-weight: bold;">INITIALIZING AR</div>
-    <div class="progress-box"><div id="progressFill"></div></div>
-</div>
-
-<div id="infoPanel">
-    FPS: <span id="fps">--</span><br>
-    STATUS: <span id="arStatus">BOOTING</span>
-</div>
-
-<div id="hint">تابلو را شناسایی کنید</div>
-
-<a-scene
-    mindar-image="imageTargetSrc: targets.mind; uiScanning: false; uiLoading: false; filterMinCF:0.0001; filterBeta: 0.001;"
-    embedded color-space="sRGB"
-    renderer="antialias: false; precision: medium; alpha: true; powerPreference: high-performance;"
+  <a-scene
+    mindar-image="imageTargetSrc: targets3.mind;"
+    embedded
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+    device-orientation-permission-ui="enabled: true">
 
     <a-assets>
-        <video id="vid" src="video.mp4" loop="true" crossorigin="anonymous" playsinline webkit-playsinline preload="auto"></video>
+      <video id="video1"
+        src="video1.mp4"
+        preload="auto"
+        loop
+        muted
+        playsinline
+        webkit-playsinline></video>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
     <a-entity mindar-image-target="targetIndex: 0">
-        <a-video src="#vid" width="1" height="0.6" position="0 0 0"></a-video>
+      <a-video
+        src="#video1"
+        width="1"
+        height="0.6"
+        position="0 0 0">
+      </a-video>
     </a-entity>
-</a-scene>
 
-<script>
-    const fill = document.getElementById('progressFill');
-    const loader = document.getElementById('loader');
-    const hint = document.getElementById('hint');
-    const fpsText = document.getElementById('fps');
-    const arStatus = document.getElementById('arStatus');
-    const vid = document.getElementById('vid');
+    <a-camera look-controls="enabled:false"></a-camera>
+  </a-scene>
 
-    // ۱. سیستم لودینگ هوشمند و سریع
-    let p = 0;
-    const loadTimer = setInterval(() => {
-        p += Math.random() * 20;
-        if(p >= 90) { p = 90; clearInterval(loadTimer); }
-        fill.style.width = p + "%";
-    }, 150);
+  <script>
+    const scene = document.querySelector("a-scene");
+    const video = document.querySelector("#video1");
+    const loading = document.getElementById("loading");
 
-    // ۲. فیکس کردن FPS
-    let frames = 0;
-    let lastTime = performance.now();
-    function updateFPS() {
-        frames++;
-        const now = performance.now();
-        if (now >= lastTime + 1000) {
-            fpsText.innerText = frames;
-            frames = 0;
-            lastTime = now;
-        }
-        requestAnimationFrame(updateFPS);
-    }
-    updateFPS();
-
-    // ۳. اجرای موتور AR
-    document.querySelector('a-scene').addEventListener("arReady", () => {
-        fill.style.width = "100%";
-        arStatus.innerText = "READY";
-        setTimeout(() => {
-            loader.style.opacity = "0";
-            setTimeout(() => loader.style.display = "none", 500);
-            hint.style.opacity = "1";
-        }, 300);
+    scene.addEventListener("renderstart", () => {
+      loading.style.display = "none";
     });
 
-    // ۴. مدیریت شناسایی هدف
-    document.querySelector('a-scene').addEventListener("targetFound", () => {
-        hint.style.opacity = "0";
-        arStatus.innerText = "PLAYING";
-        vid.play().catch(() => {
-            // حل مشکل بلاک شدن صدا در آیفون/اندروید
-            document.addEventListener('touchstart', () => vid.play(), {once: true});
-        });
+    scene.addEventListener("targetFound", () => {
+      video.play();
     });
 
-    document.querySelector('a-scene').addEventListener("targetLost", () => {
-        vid.pause();
-        hint.style.opacity = "1";
-        arStatus.innerText = "SEARCHING";
+    scene.addEventListener("targetLost", () => {
+      video.pause();
     });
-
-    // ۵. جلوگیری از خطای صفحه سیاه در جابجایی بین اپلیکیشن‌ها
-    window.addEventListener('resize', () => {
-        document.querySelector('video').style.width = window.innerWidth + 'px';
-        document.querySelector('video').style.height = window.innerHeight + 'px';
-    });
-</script>
-
+  </script>
 </body>
 </html>
